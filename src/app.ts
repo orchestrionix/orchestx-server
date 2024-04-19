@@ -9,11 +9,11 @@ app.use(express.json());
 app.use('/api', routes);
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to the Express TypeScript server!' });
+    res.json({ message: 'OrchestX Express Server' });
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
+    console.log(`OrchestX Server is running at http://localhost:${PORT}`);
 });
 
 export default app;
