@@ -1,0 +1,29 @@
+{
+  "name": "orchestx-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "node dist/app.js",
+    "build": "tsc --project .",
+    "serve": "node dist/app.js",
+    "dev": "nodemon src/app.ts --exec ts-node src/app.ts",
+    "clean": "rimraf dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "directory-tree": "^3.5.1",
+    "express": "^4.19.2",
+    "net": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.12.7",
+    "nodemon": "^3.1.0",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
