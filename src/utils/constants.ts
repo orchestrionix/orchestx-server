@@ -3,6 +3,6 @@ export const TCP_HOST = 'localhost';
 
 export const PLAYER_DIRECTORY = 'C:\\Decap\\DecapPlayer_V02';
 export const MUSIC_DIRECTORY = 'C:\\Decap\\Music';
-export const PLAYER_PLAYLIST_DIRECTORY = 'C:\\Decap\\Playlists';
+export const PLAYER_PLAYLIST_DIRECTORY = 'Playlists';
 
 export const DEFAULT_ERROR_MESSAGE = "Something went wrong"
