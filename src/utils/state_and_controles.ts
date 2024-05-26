@@ -1,5 +1,6 @@
 import { Socket } from "net";
 import { TCP_PORT, TCP_HOST } from "./constants";
+import { extractJson } from ".";
 
 export async function TCPPrevRemotePlayer(): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -85,10 +86,23 @@ export async function TCPRemotePlayerState(): Promise<any> {
     });
 }
 
-export function extractJson(data: string): any {
-    try {
-        return JSON.parse(data);
-    } catch (error) {
-        throw new Error('Failed to parse JSON');
-    }
+export async function TCPRemotePlayerActivePlaylist(): Promise<any> {
+    return new Promise((resolve, reject) => {
+        const client = new Socket();
+
+        client.connect(TCP_PORT, TCP_HOST, () => {
+            const command = "GetPlaylist\n";
+            client.write(command);
+        });
+
+        client.on('data', (data: any) => {
+            client.destroy();
+            resolve(extractJson(data.toString()));
+        });
+
+        client.on('error', (error: any) => {
+            client.destroy();
+            reject(error);
+        });
+    });
 }

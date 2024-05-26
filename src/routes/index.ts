@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   TCPNextRemotePlayer,
   TCPPrevRemotePlayer,
+  TCPRemotePlayerActivePlaylist,
   TCPRemotePlayerState,
   TCPToggleRemotePlayer,
 } from "../utils/state_and_controles";
@@ -27,6 +28,16 @@ router.get("/get-remote-player-state", async (req, res) => {
     const state = await TCPRemotePlayerState();
 
     res.json(state);
+  } catch (error: any) {
+    res.status(500).json({ error: error?.message });
+  }
+});
+
+router.get("/get-remote-player-active-playlist", async (req, res) => {
+  try {
+    const playlist = await TCPRemotePlayerActivePlaylist();
+
+    res.json(playlist);
   } catch (error: any) {
     res.status(500).json({ error: error?.message });
   }
@@ -149,7 +160,6 @@ router.post("/delete-song-from-playlist-by-index", async (req, res) => {
   }
 });
 
-
 // ==========================================================
 // =================== D I R E C T O R Y ====================
 // ==========================================================
@@ -166,12 +176,12 @@ router.get("/get-file-directory", async (req, res) => {
 });
 
 router.get("/get-all-playlists", async (req, res) => {
-    try {
-      const playlists = await getAllPlaylists();
-      res.json({ playlists });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
+  try {
+    const playlists = await getAllPlaylists();
+    res.json({ playlists });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 export default router;
