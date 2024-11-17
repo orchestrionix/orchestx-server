@@ -1,9 +1,11 @@
 import { Router } from "express";
 import {
   TCPNextRemotePlayer,
+  TCPPlayItemRemotePlayer,
   TCPPrevRemotePlayer,
   TCPRemotePlayerActivePlaylist,
   TCPRemotePlayerState,
+  TCPSelectItemRemotePlayer,
   TCPToggleRemotePlayer,
 } from "../utils/state_and_controles";
 import {
@@ -67,6 +69,36 @@ router.get("/prev-remote-player", async (req, res) => {
     res.json({ success: result });
   } catch (error: any) {
     res.status(500).json({ error: error?.message });
+  }
+});
+
+router.post("/play-item-remote-player", async (req, res) => {
+  const { songIndex } = req.body;
+
+  if (!songIndex) {
+    return res.status(400).json({ error: "Song index is required" });
+  }
+
+  try {
+    await TCPPlayItemRemotePlayer(songIndex);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/select-item-remote-player", async (req, res) => {
+  const { songIndex } = req.body;
+
+  if (!songIndex) {
+    return res.status(400).json({ error: "Song index is required" });
+  }
+
+  try {
+    await TCPSelectItemRemotePlayer(songIndex);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 
