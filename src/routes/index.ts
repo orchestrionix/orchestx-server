@@ -18,6 +18,8 @@ import {
 } from "../utils/playlist";
 import directoryTree from "directory-tree";
 import { MUSIC_DIRECTORY } from "../utils/constants";
+import WebSocket from 'ws';
+import { Server } from 'http';
 
 const router = Router();
 
@@ -215,5 +217,37 @@ router.get("/get-all-playlists", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// ==========================================================
+// =================== W E B S O C K E T ====================
+// ==========================================================
+
+let wss: WebSocket.Server;
+
+export function initializeWebSocket(server: Server) {
+  wss = new WebSocket.Server({ server });
+  
+  wss.on('connection', (ws) => {
+    console.log('New WebSocket connection');
+    
+    // Add connection count logging
+    console.log(`Active connections: ${wss.clients.size}`);
+    
+    const intervalId = setInterval(async () => {
+      try {
+        const state = await TCPRemotePlayerState();
+        console.log('Sending state:', state); // Log what's being sent
+        ws.send(JSON.stringify(state));
+      } catch (error) {
+        console.error('Error sending player state:', error);
+      }
+    }, 100);
+
+    ws.on('close', () => {
+      clearInterval(intervalId);
+      console.log('Client disconnected');
+    });
+  });
+}
 
 export default router;
