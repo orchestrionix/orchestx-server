@@ -41,6 +41,8 @@ router.get("/get-remote-player-active-playlist", async (req, res) => {
   try {
     const playlist = await TCPRemotePlayerActivePlaylist();
 
+    console.log("active playlist", playlist);
+
     res.json(playlist);
   } catch (error: any) {
     res.status(500).json({ error: error?.message });
@@ -150,6 +152,9 @@ router.post("/get-songs-from-playlist", async (req, res) => {
 
   try {
     const songs = await getSongsFromPlaylist(playlistName);
+
+    console.log("songs", songs);
+
     res.json({ songs });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -203,6 +208,9 @@ router.get("/get-file-directory", async (req, res) => {
     const tree = directoryTree(MUSIC_DIRECTORY, {
       attributes: ["size", "type", "extension"],
     });
+
+    console.log("tree", tree);
+
     res.json(tree);
   } catch (error: any) {
     res.status(500).json({ error: error?.message });
@@ -212,6 +220,9 @@ router.get("/get-file-directory", async (req, res) => {
 router.get("/get-all-playlists", async (req, res) => {
   try {
     const playlists = await getAllPlaylists();
+
+    console.log("playlists", JSON.stringify(playlists));
+    
     res.json({ playlists });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -236,7 +247,7 @@ export function initializeWebSocket(server: Server) {
     const intervalId = setInterval(async () => {
       try {
         const state = await TCPRemotePlayerState();
-        console.log('Sending state:', state); // Log what's being sent
+        // console.log('Sending state:', state); // Log what's being sent
         ws.send(JSON.stringify(state));
       } catch (error) {
         console.error('Error sending player state:', error);
