@@ -135,7 +135,7 @@ export async function getAllPlaylists() {
   return Promise.all(playlists);
 }
 
-export async function updatePlaylist(
+export async function renamePlaylist(
   oldPlaylistName: string,
   newPlaylistName: string
 ): Promise<void> {
@@ -157,6 +157,37 @@ export async function updatePlaylist(
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Failed to rename playlist: ${errorMessage}`);
+  }
+}
+
+export async function updatePlaylist(
+  playlistName: string,
+  songs: string[]
+): Promise<void> {
+  const targetDirectory = `${PLAYER_DIRECTORY}\\${PLAYER_PLAYLIST_DIRECTORY}`;
+  const filePath = join(targetDirectory, `${playlistName}.mdl`);
+
+  // Check if the playlist exists
+  if (!(await fileExists(filePath))) {
+    throw new Error(`Playlist "${playlistName}" does not exist.`);
+  }
+
+  try {
+    // Verify that all songs exist
+    // for (const songPath of songs) {
+    //   if (!(await fileExists(songPath))) {
+    //     throw new Error(`Song file "${songPath}" does not exist.`);
+    //   }
+    // }
+
+    // Write the updated song list
+    const content = songs.join('\n');
+    await writeFile(filePath, content, { encoding: "utf8" });
+
+    console.log(`Playlist "${playlistName}" updated successfully.`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Failed to update playlist "${playlistName}": ${errorMessage}`);
   }
 }
 

@@ -16,6 +16,9 @@ import {
   getAllPlaylists,
   getSongsFromPlaylist,
   removeSongFromPlaylistByIndex,
+  updatePlaylist,
+  deletePlaylist,
+  renamePlaylist,
 } from "../utils/playlist";
 import directoryTree from "directory-tree";
 import { MUSIC_DIRECTORY } from "../utils/constants";
@@ -210,6 +213,55 @@ router.post("/delete-song-from-playlist-by-index", async (req, res) => {
   }
 });
 
+router.post("/rename-playlist", async (req, res) => {
+  const { oldPlaylistName, newPlaylistName } = req.body;
+
+  if (!oldPlaylistName || !newPlaylistName) {
+    return res.status(400).json({ 
+      error: "Both old and new playlist names are required" 
+    });
+  }
+
+  try {
+    await renamePlaylist(oldPlaylistName, newPlaylistName);
+    res.json({ message: "Playlist updated successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/delete-playlist", async (req, res) => {
+  const { playlistName } = req.body;
+
+  if (!playlistName) {
+    return res.status(400).json({ error: "Playlist name is required" });
+  }
+
+  try {
+    await deletePlaylist(playlistName);
+    res.json({ message: "Playlist deleted successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/update-playlist", async (req, res) => {
+  const { playlistName, songs } = req.body;
+
+  if (!playlistName || !songs) {
+    return res.status(400).json({ 
+      error: "Playlist name and songs array are required" 
+    });
+  }
+
+  try {
+    await updatePlaylist(playlistName, songs);
+    res.json({ message: "Playlist updated successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==========================================================
 // =================== D I R E C T O R Y ====================
 // ==========================================================
@@ -257,7 +309,7 @@ export function initializeWebSocket(server: Server) {
     const intervalId = setInterval(async () => {
       try {
         const state = await TCPRemotePlayerState();
-        // console.log('Sending state:', state); // Log what's being sent
+        console.log('Sending state:', state); // Log what's being sent
         ws.send(JSON.stringify(state));
       } catch (error) {
         console.error('Error sending player state:', error);
