@@ -67,6 +67,8 @@ export async function TCPToggleRemotePlayer(): Promise<boolean> {
 
 export async function TCPRemotePlayerState(): Promise<any> {
     return new Promise((resolve, reject) => {
+        
+
         const client = new Socket();
 
         client.connect(TCP_PORT, TCP_HOST, () => {
@@ -108,11 +110,13 @@ export async function TCPRemotePlayerActivePlaylist(): Promise<any> {
 }
 
 export async function TCPPlayItemRemotePlayer(index: string): Promise<any> {
+    console.log("play item: at index", Number(index));
+
     return new Promise((resolve, reject) => {
         const client = new Socket();
 
         client.connect(TCP_PORT, TCP_HOST, () => {
-            const command = `PlayItem ${index + 1}\n`;
+            const command = `PlayItem ${Number(index) + 1}\n`;
             client.write(command);
         });
 

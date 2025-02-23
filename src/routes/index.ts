@@ -109,19 +109,25 @@ router.post("/select-item-remote-player", async (req, res) => {
 });
 
 router.post("/load-playlist-remote-player", async (req, res) => {
-  const { path } = req.body;
+  const { path, playIndex } = req.body;
 
   if (!path) {
     return res.status(400).json({ error: "Path is required" }); 
   }
 
   try {
+    console.log("Loading playlist:", path);
+    console.log("Playing index:", playIndex);
+    
     await TCPLoadPlaylistRemotePlayer(path);
+    await TCPPlayItemRemotePlayer(playIndex?.toString() || "0");
+    
     res.sendStatus(200);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 });
+
 // ==========================================================
 // ================== P L A Y L I S T S  ====================
 // ==========================================================
@@ -309,7 +315,7 @@ export function initializeWebSocket(server: Server) {
     const intervalId = setInterval(async () => {
       try {
         const state = await TCPRemotePlayerState();
-        console.log('Sending state:', state); // Log what's being sent
+
         ws.send(JSON.stringify(state));
       } catch (error) {
         console.error('Error sending player state:', error);
