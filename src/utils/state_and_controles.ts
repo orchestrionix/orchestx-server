@@ -148,3 +148,26 @@ export async function TCPSelectItemRemotePlayer(index: string): Promise<any> {
         });
     });
 }
+
+export async function TCPLoadPlaylistRemotePlayer(path: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+        const client = new Socket();
+
+        client.connect(TCP_PORT, TCP_HOST, () => {
+            const command = path.includes(' ') ? 
+                `LoadPlaylist "${path}"\n` :
+                `LoadPlaylist ${path}\n`;
+            client.write(command);
+        });
+
+        client.on('data', (data) => {
+            client.destroy();
+            resolve(true);
+        });
+
+        client.on('error', (error) => {
+            client.destroy();
+            reject(error);
+        });
+    });
+}

@@ -134,3 +134,45 @@ export async function getAllPlaylists() {
   // Wait for all playlist details to be fetched
   return Promise.all(playlists);
 }
+
+export async function updatePlaylist(
+  oldPlaylistName: string,
+  newPlaylistName: string
+): Promise<void> {
+  const targetDirectory = `${PLAYER_DIRECTORY}\\${PLAYER_PLAYLIST_DIRECTORY}`;
+  const oldFilePath = join(targetDirectory, `${oldPlaylistName}.mdl`);
+  const newFilePath = join(targetDirectory, `${newPlaylistName}.mdl`);
+
+  if (!(await fileExists(oldFilePath))) {
+    throw new Error(`Playlist "${oldPlaylistName}" does not exist.`);
+  }
+
+  if (await fileExists(newFilePath) && oldPlaylistName !== newPlaylistName) {
+    throw new Error(`Playlist "${newPlaylistName}" already exists.`);
+  }
+
+  try {
+    await fsPromises.rename(oldFilePath, newFilePath);
+    console.log(`Playlist renamed from "${oldPlaylistName}" to "${newPlaylistName}" successfully.`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Failed to rename playlist: ${errorMessage}`);
+  }
+}
+
+export async function deletePlaylist(playlistName: string): Promise<void> {
+  const targetDirectory = `${PLAYER_DIRECTORY}\\${PLAYER_PLAYLIST_DIRECTORY}`;
+  const filePath = join(targetDirectory, `${playlistName}.mdl`);
+
+  if (!(await fileExists(filePath))) {
+    throw new Error(`Playlist "${playlistName}" does not exist.`);
+  }
+
+  try {
+    await fsPromises.unlink(filePath);
+    console.log(`Playlist "${playlistName}" deleted successfully.`);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Failed to delete playlist "${playlistName}": ${errorMessage}`);
+  }
+}

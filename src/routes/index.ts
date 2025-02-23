@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  TCPLoadPlaylistRemotePlayer,
   TCPNextRemotePlayer,
   TCPPlayItemRemotePlayer,
   TCPPrevRemotePlayer,
@@ -40,8 +41,6 @@ router.get("/get-remote-player-state", async (req, res) => {
 router.get("/get-remote-player-active-playlist", async (req, res) => {
   try {
     const playlist = await TCPRemotePlayerActivePlaylist();
-
-    console.log("active playlist", playlist);
 
     res.json(playlist);
   } catch (error: any) {
@@ -106,6 +105,20 @@ router.post("/select-item-remote-player", async (req, res) => {
   }
 });
 
+router.post("/load-playlist-remote-player", async (req, res) => {
+  const { path } = req.body;
+
+  if (!path) {
+    return res.status(400).json({ error: "Path is required" }); 
+  }
+
+  try {
+    await TCPLoadPlaylistRemotePlayer(path);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
 // ==========================================================
 // ================== P L A Y L I S T S  ====================
 // ==========================================================
@@ -152,8 +165,6 @@ router.post("/get-songs-from-playlist", async (req, res) => {
 
   try {
     const songs = await getSongsFromPlaylist(playlistName);
-
-    console.log("songs", songs);
 
     res.json({ songs });
   } catch (error: any) {
@@ -209,7 +220,6 @@ router.get("/get-file-directory", async (req, res) => {
       attributes: ["size", "type", "extension"],
     });
 
-    console.log("tree", tree);
 
     res.json(tree);
   } catch (error: any) {
@@ -221,7 +231,7 @@ router.get("/get-all-playlists", async (req, res) => {
   try {
     const playlists = await getAllPlaylists();
 
-    console.log("playlists", JSON.stringify(playlists));
+    
     
     res.json({ playlists });
   } catch (error: any) {
