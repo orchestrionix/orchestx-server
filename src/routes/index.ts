@@ -21,9 +21,9 @@ import {
   renamePlaylist,
 } from "../utils/playlist";
 import directoryTree from "directory-tree";
-import { MUSIC_DIRECTORY } from "../utils/constants";
 import WebSocket from 'ws';
 import { Server } from 'http';
+import { getSettings, updateSettings } from "../utils/settings";
 
 const router = Router();
 
@@ -274,10 +274,10 @@ router.post("/update-playlist", async (req, res) => {
 
 router.get("/get-file-directory", async (req, res) => {
   try {
-    const tree = directoryTree(MUSIC_DIRECTORY, {
+    const settings = await getSettings();
+    const tree = directoryTree(settings.MUSIC_DIRECTORY, {
       attributes: ["size", "type", "extension"],
     });
-
 
     res.json(tree);
   } catch (error: any) {
@@ -294,6 +294,119 @@ router.get("/get-all-playlists", async (req, res) => {
     res.json({ playlists });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================================
+// ===================== S E T T I N G S ====================
+// ==========================================================
+
+/**
+ * GET /api/settings
+ * Retrieves all current settings from the settings.ini file
+ * 
+ * Response:
+ * {
+ *   NAME: string            - Name of the player instance
+ *   PLAYER_DIRECTORY: string - Path to DecapPlayer installation
+ *   MUSIC_DIRECTORY: string  - Path to music files directory
+ *   PLAYER_PLAYLIST_DIRECTORY: string - Name of playlist directory
+ * }
+ */
+router.get('/settings', async (req, res) => {
+  try {
+      const settings = await getSettings();
+      res.json(settings);
+  } catch (error: any) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * PATCH /api/settings/:key
+ * Updates a single setting value in settings.ini
+ * 
+ * URL Parameters:
+ * - key: The setting name to update (NAME, PLAYER_DIRECTORY, etc.)
+ * 
+ * Request Body:
+ * {
+ *   value: string - The new value for the setting
+ * }
+ * 
+ * Response:
+ * {
+ *   message: string - Success message
+ *   settings: object - Updated settings object
+ * }
+ * 
+ * Example:
+ * PATCH /api/settings/NAME
+ * { "value": "MyPlayer" }
+ */
+router.patch('/settings/:key', async (req, res) => {
+  try {
+      const { key } = req.params;
+      const { value } = req.body;
+
+      if (!value) {
+          return res.status(400).json({ error: "Value is required" });
+      }
+
+      await updateSettings({ [key]: value });
+      const updatedSettings = await getSettings();
+      
+      res.json({
+          message: `Setting "${key}" updated successfully`,
+          settings: updatedSettings
+      });
+  } catch (error: any) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * PUT /api/settings
+ * Updates multiple settings at once in settings.ini
+ * 
+ * Request Body:
+ * Partial<Settings> object containing one or more settings to update
+ * {
+ *   NAME?: string
+ *   PLAYER_DIRECTORY?: string
+ *   MUSIC_DIRECTORY?: string
+ *   PLAYER_PLAYLIST_DIRECTORY?: string
+ * }
+ * 
+ * Response:
+ * {
+ *   message: string - Success message
+ *   settings: object - Complete updated settings object
+ * }
+ * 
+ * Example:
+ * {
+ *   "NAME": "MyPlayer",
+ *   "MUSIC_DIRECTORY": "D:\Music"
+ * }
+ */
+router.put('/settings', async (req, res) => {
+  try {
+      const newSettings = req.body;
+      
+      if (!Object.keys(newSettings).length) {
+          return res.status(400).json({ error: "No settings provided" });
+      }
+
+      await updateSettings(newSettings);
+      const updatedSettings = await getSettings();
+      
+      res.json({
+          message: "Settings updated successfully",
+          settings: updatedSettings
+      });
+  } catch (error: any) {
+      res.status(500).json({ error: error.message });
   }
 });
 
@@ -328,5 +441,6 @@ export function initializeWebSocket(server: Server) {
     });
   });
 }
+
 
 export default router;

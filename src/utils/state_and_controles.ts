@@ -1,6 +1,7 @@
 import { Socket } from "net";
 import { TCP_PORT, TCP_HOST } from "./constants";
 import { extractJson } from ".";
+import { getSettings } from "./settings";
 
 export async function TCPPrevRemotePlayer(): Promise<boolean> {
     return new Promise((resolve, reject) => {
