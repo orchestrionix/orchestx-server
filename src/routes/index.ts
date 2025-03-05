@@ -8,6 +8,8 @@ import {
   TCPRemotePlayerState,
   TCPSelectItemRemotePlayer,
   TCPToggleRemotePlayer,
+  TCPSetVolumeRemotePlayer,
+  TCPSetViewModeRemotePlayer,
 } from "../utils/state_and_controles";
 import {
   addSongToPlaylist,
@@ -123,6 +125,37 @@ router.post("/load-playlist-remote-player", async (req, res) => {
     await TCPPlayItemRemotePlayer(playIndex?.toString() || "0");
     
     res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/set-volume-remote-player", async (req, res) => {
+  const { volume } = req.body;
+
+  if (volume === undefined) {
+    return res.status(400).json({ error: "Volume value is required" });
+  }
+
+  try {
+    console.log("Setting volume:", volume);
+    const result = await TCPSetVolumeRemotePlayer(Number(volume));
+    res.json({ success: result });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/set-view-mode-remote-player", async (req, res) => {
+  const { viewMode } = req.body;
+
+  if (viewMode === undefined) {
+    return res.status(400).json({ error: "View mode value is required" });
+  }
+
+  try {
+    const result = await TCPSetViewModeRemotePlayer(Number(viewMode));
+    res.json({ success: result });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

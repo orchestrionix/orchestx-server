@@ -176,3 +176,83 @@ export async function TCPLoadPlaylistRemotePlayer(path: string): Promise<any> {
         });
     });
 }
+
+export async function TCPSetVolumeRemotePlayer(volume: number): Promise<boolean> {
+    // Ensure volume is within the valid range (0-65535)
+    const validVolume = Math.max(0, Math.min(65535, volume));
+    
+    return new Promise((resolve, reject) => {
+        const client = new Socket();
+        
+        // Add connection timeout
+        const timeout = setTimeout(() => {
+            client.destroy();
+            reject(new Error('Connection timeout while setting volume'));
+        }, 5000); // 5 second timeout
+        
+        client.connect(TCP_PORT, TCP_HOST, () => {
+            const command = `SetVolume ${validVolume}\n`;
+            client.write(command);
+            
+            // Some TCP servers might not send a response for certain commands
+            // Resolve after a short delay if no data event occurs
+            setTimeout(() => {
+                clearTimeout(timeout);
+                client.destroy();
+                resolve(true);
+            }, 500); // 500ms should be enough for most responses
+        });
+
+        client.on('data', (data) => {
+            clearTimeout(timeout);
+            client.destroy();
+            resolve(true);
+        });
+
+        client.on('error', (error) => {
+            clearTimeout(timeout);
+            client.destroy();
+            reject(error);
+        });
+    });
+}
+
+export async function TCPSetViewModeRemotePlayer(viewMode: number): Promise<boolean> {
+    // Ensure view mode is within the valid range (0-5)
+    const validViewMode = Math.max(0, Math.min(5, viewMode));
+    
+    return new Promise((resolve, reject) => {
+        const client = new Socket();
+        
+        // Add connection timeout
+        const timeout = setTimeout(() => {
+            client.destroy();
+            reject(new Error('Connection timeout while setting view mode'));
+        }, 5000); // 5 second timeout
+        
+        client.connect(TCP_PORT, TCP_HOST, () => {
+            const command = `SetViewMode ${validViewMode}\n`;
+            client.write(command);
+            
+            // Some TCP servers might not send a response for certain commands
+            // Resolve after a short delay if no data event occurs
+            setTimeout(() => {
+                clearTimeout(timeout);
+                client.destroy();
+                resolve(true);
+            }, 500); // 500ms should be enough for most responses
+        });
+
+        client.on('data', (data) => {
+            clearTimeout(timeout);
+            client.destroy();
+            resolve(true);
+        });
+
+        client.on('error', (error) => {
+            clearTimeout(timeout);
+            client.destroy();
+            reject(error);
+        });
+    });
+}
