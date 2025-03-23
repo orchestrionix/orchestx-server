@@ -18,7 +18,7 @@ export async function createPlaylist(
   songs: string[]
 ): Promise<void> {
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const filePath = join(targetDirectory, `${playlistName}.mdl`);
 
   if (await fileExists(filePath)) {
@@ -34,7 +34,7 @@ export async function createPlaylist(
 
 export async function getSongsFromPlaylist(playlistName: string) {
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const filePath = join(targetDirectory, `${playlistName}.mdl`);
 
   if (!(await fileExists(filePath))) {
@@ -57,7 +57,7 @@ export async function addSongToPlaylist(
 ) {
   console.log("Adding song to playlist");
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const filePath = join(targetDirectory, `${playlistName}.mdl`);
 
   // Check if the playlist exists
@@ -83,7 +83,7 @@ export async function removeSongFromPlaylistByIndex(
   songIndex: number
 ) {
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const filePath = join(targetDirectory, `${playlistName}.mdl`);
 
   // Check if the playlist exists
@@ -115,7 +115,8 @@ export async function removeSongFromPlaylistByIndex(
 
 export async function getAllPlaylists() {
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  console.log("Getting all playlists");
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
 
   if (!(await fileExists(targetDirectory))) {
     throw new Error(`Playlist directory does not exist.`);
@@ -145,7 +146,7 @@ export async function renamePlaylist(
   newPlaylistName: string
 ): Promise<void> {
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const oldFilePath = join(targetDirectory, `${oldPlaylistName}.mdl`);
   const newFilePath = join(targetDirectory, `${newPlaylistName}.mdl`);
 
@@ -171,7 +172,7 @@ export async function updatePlaylist(
   songs: string[]
 ): Promise<void> {
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const filePath = join(targetDirectory, `${playlistName}.mdl`);
 
   // Check if the playlist exists
@@ -200,7 +201,7 @@ export async function updatePlaylist(
 
 export async function deletePlaylist(playlistName: string): Promise<void> {
   const settings = await getSettings();
-  const targetDirectory = join(settings.PLAYER_DIRECTORY, settings.PLAYER_PLAYLIST_DIRECTORY);
+  const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const filePath = join(targetDirectory, `${playlistName}.mdl`);
 
   if (!(await fileExists(filePath))) {

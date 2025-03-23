@@ -1,7 +1,6 @@
 import { Socket } from "net";
 import { TCP_PORT, TCP_HOST } from "./constants";
 import { extractJson } from ".";
-import { getSettings } from "./settings";
 
 export async function TCPPrevRemotePlayer(): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -84,7 +83,19 @@ export async function TCPRemotePlayerState(): Promise<any> {
 
         client.on('error', (error: any) => {
             client.destroy();
-            reject(error);
+
+            // resolve with error state
+            resolve({
+                state: {
+                    status: "error",
+                    title: "No connection to remote player",
+                    itemId: 0,
+                    length: 0,
+                    position: 0,
+                    volume: 0,
+                    viewMode: 0,
+                }
+            });
         });
     });
 }

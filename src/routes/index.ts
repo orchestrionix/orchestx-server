@@ -45,8 +45,9 @@ router.get("/get-remote-player-state", async (req, res) => {
 
 router.get("/get-remote-player-active-playlist", async (req, res) => {
   try {
+    console.log("Getting remote player active playlist");
     const playlist = await TCPRemotePlayerActivePlaylist();
-
+    console.log("Remote player active playlist:", JSON.stringify(playlist, null, 2));
     res.json(playlist);
   } catch (error: any) {
     res.status(500).json({ error: error?.message });
@@ -83,7 +84,9 @@ router.get("/prev-remote-player", async (req, res) => {
 router.post("/play-item-remote-player", async (req, res) => {
   const { songIndex } = req.body;
 
-  if (!songIndex) {
+  console.log("Playing item remote player:", songIndex);
+
+  if (!songIndex && songIndex !== 0) {
     return res.status(400).json({ error: "Song index is required" });
   }
 
@@ -98,7 +101,7 @@ router.post("/play-item-remote-player", async (req, res) => {
 router.post("/select-item-remote-player", async (req, res) => {
   const { songIndex } = req.body;
 
-  if (!songIndex) {
+  if (!songIndex && songIndex !== 0) {
     return res.status(400).json({ error: "Song index is required" });
   }
 
@@ -121,9 +124,16 @@ router.post("/load-playlist-remote-player", async (req, res) => {
     console.log("Loading playlist:", path);
     console.log("Playing index:", playIndex);
     
+    // load the new playlist
     await TCPLoadPlaylistRemotePlayer(path);
-    await TCPPlayItemRemotePlayer(playIndex?.toString() || "0");
-    
+
+    // fetch the playlist, and the order of wich the suffled playlist is
+    const playlist = await TCPRemotePlayerActivePlaylist();
+    const order = playlist.order;
+
+    // play the item at the index of the order
+    await TCPPlayItemRemotePlayer(order[playIndex]?.toString() || "0");
+
     res.sendStatus(200);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
