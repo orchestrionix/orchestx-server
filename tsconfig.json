@@ -12,7 +12,7 @@
   },
   "include": [
     "src/**/*"
-, "src/build"  ],
+  ],
   "exclude": [
     "node_modules",
     "dist"
