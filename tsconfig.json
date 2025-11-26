@@ -1,14 +1,25 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2018",
+    "lib": ["es2018"],
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./dist",
+    "rootDir": "./src",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "strict": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "noFallthroughCasesInSwitch": false,
     "skipLibCheck": true,
-    "strictPropertyInitialization": false
+    "strictPropertyInitialization": false,
+    "resolveJsonModule": true,
+    "types": ["node"]
   },
   "include": [
     "src/**/*"

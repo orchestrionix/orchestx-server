@@ -3,6 +3,7 @@ import routes, { initializeWebSocket } from './routes/index';
 import cors from 'cors';
 import { createServer } from 'http';
 import path from 'path';
+import { PresenceClient } from './utils/presenceClient';
 
 const app = express();
 const PORT = 4000;
@@ -29,11 +30,38 @@ app.get('*', (req, res) => {
 // Initialize WebSocket with HTTP server
 initializeWebSocket(server);
 
+// Initialize Presence Client
+const presenceClient = new PresenceClient();
+
 // Listen on all network interfaces
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`OrchestX Server is running at http://0.0.0.0:${PORT}`);
     console.log(`React app should be accessible at http://localhost:${PORT}`);
     console.log(`Build folder location: ${buildPath}`);
+    
+    // Start presence client after server is listening
+    presenceClient.start().catch((error) => {
+        console.error('Failed to start presence client:', error);
+    });
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully...');
+    presenceClient.stop();
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully...');
+    presenceClient.stop();
+    server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+    });
 });
 
 export default app;
