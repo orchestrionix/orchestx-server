@@ -5,10 +5,11 @@
   "main": "dist/app.js",
   "scripts": {
     "start": "node dist/app.js",
-    "build": "tsc --project .",
+    "build": "tsc --project . && npm run copy-build",
     "serve": "node dist/app.js",
     "dev": "nodemon src/app.ts --exec ts-node src/app.ts",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "copy-build": "xcopy /E /I /Y src\\build dist\\build"
   },
   "keywords": [],
   "author": "",
