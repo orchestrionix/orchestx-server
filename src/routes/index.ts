@@ -468,15 +468,17 @@ export function initializeWebSocket(server: Server) {
     // Add connection count logging
     console.log(`Active connections: ${wss.clients.size}`);
     
+    // Poll player state every 500ms (was 100ms)
+    // Client-side interpolation handles smooth progress bar animation at 60fps
+    // Server just provides periodic sync points
     const intervalId = setInterval(async () => {
       try {
         const state = await TCPRemotePlayerState();
-
         ws.send(JSON.stringify(state));
       } catch (error) {
         console.error('Error sending player state:', error);
       }
-    }, 100);
+    }, 500);
 
     ws.on('close', () => {
       clearInterval(intervalId);
