@@ -22,6 +22,15 @@ import {
   deletePlaylist,
   renamePlaylist,
 } from "../utils/playlist";
+import {
+  getAllPresetPlaylists,
+  getSongsFromPresetPlaylist,
+  addSongToPresetPlaylist,
+  removeSongFromPresetPlaylistByIndex,
+  updatePresetPlaylist,
+  getPresetIndexFromName,
+  isPresetPlaylistName,
+} from "../utils/presetPlaylist";
 import directoryTree from "directory-tree";
 import WebSocket from 'ws';
 import { Server } from 'http';
@@ -312,6 +321,93 @@ router.post("/update-playlist", async (req, res) => {
 });
 
 // ==========================================================
+// ============ P R E S E T   P L A Y L I S T S =============
+// ==========================================================
+
+router.get("/get-all-preset-playlists", async (req, res) => {
+  try {
+    const presets = await getAllPresetPlaylists();
+    res.json({ playlists: presets });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/get-songs-from-preset-playlist", async (req, res) => {
+  const { presetIndex } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  try {
+    const songs = await getSongsFromPresetPlaylist(presetIndex);
+    res.json({ songs });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/add-song-to-preset-playlist", async (req, res) => {
+  const { presetIndex, songPath } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  if (!songPath) {
+    return res.status(400).json({ error: "Song path is required" });
+  }
+
+  try {
+    await addSongToPresetPlaylist(presetIndex, songPath);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/delete-song-from-preset-playlist-by-index", async (req, res) => {
+  const { presetIndex, songIndex } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  if (!songIndex) {
+    return res.status(400).json({ error: "Song index is required" });
+  }
+
+  try {
+    await removeSongFromPresetPlaylistByIndex(presetIndex, songIndex);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/update-preset-playlist", async (req, res) => {
+  const { presetIndex, songs } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  if (!songs) {
+    return res.status(400).json({ 
+      error: "Songs array is required" 
+    });
+  }
+
+  try {
+    await updatePresetPlaylist(presetIndex, songs);
+    res.json({ message: "Preset playlist updated successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================================
 // =================== D I R E C T O R Y ====================
 // ==========================================================
 
@@ -330,11 +426,21 @@ router.get("/get-file-directory", async (req, res) => {
 
 router.get("/get-all-playlists", async (req, res) => {
   try {
-    const playlists = await getAllPlaylists();
+    // Get regular playlists and add isPreset: false
+    const regularPlaylists = await getAllPlaylists();
+    const regularWithFlag = regularPlaylists.map(p => ({
+      ...p,
+      isPreset: false,
+      displayName: p.playlistName,
+    }));
 
+    // Get preset playlists (already have isPreset: true)
+    const presetPlaylists = await getAllPresetPlaylists();
+
+    // Combine: presets first, then regular playlists
+    const allPlaylists = [...presetPlaylists, ...regularWithFlag];
     
-    
-    res.json({ playlists });
+    res.json({ playlists: allPlaylists });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
