@@ -22,10 +22,20 @@ import {
   deletePlaylist,
   renamePlaylist,
 } from "../utils/playlist";
+import {
+  getAllPresetPlaylists,
+  getSongsFromPresetPlaylist,
+  addSongToPresetPlaylist,
+  removeSongFromPresetPlaylistByIndex,
+  updatePresetPlaylist,
+  getPresetIndexFromName,
+  isPresetPlaylistName,
+} from "../utils/presetPlaylist";
 import directoryTree from "directory-tree";
 import WebSocket from 'ws';
 import { Server } from 'http';
 import { getSettings, updateSettings } from "../utils/settings";
+import { hostname } from 'os';
 
 const router = Router();
 
@@ -123,6 +133,12 @@ router.post("/load-playlist-remote-player", async (req, res) => {
   try {
     console.log("Loading playlist:", path);
     console.log("Playing index:", playIndex);
+
+    const state = await TCPRemotePlayerState();
+
+    if (state.status === "playing") {
+      await TCPToggleRemotePlayer();
+    }
     
     // load the new playlist
     await TCPLoadPlaylistRemotePlayer(path);
@@ -312,6 +328,93 @@ router.post("/update-playlist", async (req, res) => {
 });
 
 // ==========================================================
+// ============ P R E S E T   P L A Y L I S T S =============
+// ==========================================================
+
+router.get("/get-all-preset-playlists", async (req, res) => {
+  try {
+    const presets = await getAllPresetPlaylists();
+    res.json({ playlists: presets });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/get-songs-from-preset-playlist", async (req, res) => {
+  const { presetIndex } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  try {
+    const songs = await getSongsFromPresetPlaylist(presetIndex);
+    res.json({ songs });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/add-song-to-preset-playlist", async (req, res) => {
+  const { presetIndex, songPath } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  if (!songPath) {
+    return res.status(400).json({ error: "Song path is required" });
+  }
+
+  try {
+    await addSongToPresetPlaylist(presetIndex, songPath);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/delete-song-from-preset-playlist-by-index", async (req, res) => {
+  const { presetIndex, songIndex } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  if (!songIndex) {
+    return res.status(400).json({ error: "Song index is required" });
+  }
+
+  try {
+    await removeSongFromPresetPlaylistByIndex(presetIndex, songIndex);
+    res.sendStatus(200);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/update-preset-playlist", async (req, res) => {
+  const { presetIndex, songs } = req.body;
+
+  if (presetIndex === undefined || presetIndex === null) {
+    return res.status(400).json({ error: "Preset index is required" });
+  }
+
+  if (!songs) {
+    return res.status(400).json({ 
+      error: "Songs array is required" 
+    });
+  }
+
+  try {
+    await updatePresetPlaylist(presetIndex, songs);
+    res.json({ message: "Preset playlist updated successfully" });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================================
 // =================== D I R E C T O R Y ====================
 // ==========================================================
 
@@ -330,11 +433,21 @@ router.get("/get-file-directory", async (req, res) => {
 
 router.get("/get-all-playlists", async (req, res) => {
   try {
-    const playlists = await getAllPlaylists();
+    // Get regular playlists and add isPreset: false
+    const regularPlaylists = await getAllPlaylists();
+    const regularWithFlag = regularPlaylists.map(p => ({
+      ...p,
+      isPreset: false,
+      displayName: p.playlistName,
+    }));
 
+    // Get preset playlists (already have isPreset: true)
+    const presetPlaylists = await getAllPresetPlaylists();
+
+    // Combine: presets first, then regular playlists
+    const allPlaylists = [...presetPlaylists, ...regularWithFlag];
     
-    
-    res.json({ playlists });
+    res.json({ playlists: allPlaylists });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
@@ -454,6 +567,19 @@ router.put('/settings', async (req, res) => {
 });
 
 // ==========================================================
+// =================== H O S T N A M E ======================
+// ==========================================================
+
+router.get("/hostname", (req, res) => {
+  try {
+    const machineHostname = hostname();
+    res.json({ hostname: machineHostname });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================================
 // =================== W E B S O C K E T ====================
 // ==========================================================
 
@@ -468,15 +594,17 @@ export function initializeWebSocket(server: Server) {
     // Add connection count logging
     console.log(`Active connections: ${wss.clients.size}`);
     
+    // Poll player state every 500ms (was 100ms)
+    // Client-side interpolation handles smooth progress bar animation at 60fps
+    // Server just provides periodic sync points
     const intervalId = setInterval(async () => {
       try {
         const state = await TCPRemotePlayerState();
-
         ws.send(JSON.stringify(state));
       } catch (error) {
         console.error('Error sending player state:', error);
       }
-    }, 100);
+    }, 500);
 
     ws.on('close', () => {
       clearInterval(intervalId);

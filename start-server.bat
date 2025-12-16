@@ -1,66 +1,43 @@
 @echo off
-echo OrchestX Server - Starting Server
-echo ===================================
-echo.
+setlocal enabledelayedexpansion
 
-REM Check if Node.js is installed
+REM Directory where this .bat lives
+set "APP_DIR=%~dp0"
+set "LOG_DIR=%APP_DIR%logs"
+set "LOG_FILE=%LOG_DIR%\orchestx-server.log"
+
+if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
+
+echo ================================================== >> "%LOG_FILE%"
+echo %DATE% %TIME% - OrchestX Server startup >> "%LOG_FILE%"
+
+cd /d "%APP_DIR%" || (
+  echo %DATE% %TIME% - ERROR: Cannot cd to APP_DIR >> "%LOG_FILE%"
+  exit /b 1
+)
+
 where node >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    echo ERROR: Node.js is not installed or not in PATH
-    echo Please install Node.js from https://nodejs.org/
-    echo.
-    pause
-    exit /b 1
+if errorlevel 1 (
+  echo %DATE% %TIME% - ERROR: Node.js not in PATH >> "%LOG_FILE%"
+  exit /b 1
 )
 
-echo Node.js found: 
-node --version
-echo.
+node --version >> "%LOG_FILE%" 2>&1
 
-REM Check if dist folder exists
 if not exist "dist\app.js" (
-    echo dist folder not found. Building project...
-    echo.
-    
-    REM Check if node_modules exists
-    if not exist "node_modules" (
-        echo Installing dependencies...
-        call npm install
-        if %ERRORLEVEL% NEQ 0 (
-            echo ERROR: Failed to install dependencies
-            pause
-            exit /b 1
-        )
-        echo.
-    )
-    
-    echo Building TypeScript project...
-    call npm run build
-    if %ERRORLEVEL% NEQ 0 (
-        echo ERROR: Build failed
-        pause
-        exit /b 1
-    )
-    echo.
-    echo Build completed successfully!
-    echo.
+  echo %DATE% %TIME% - dist missing, building... >> "%LOG_FILE%"
+
+  if not exist "node_modules" (
+    call npm install >> "%LOG_FILE%" 2>&1
+    if errorlevel 1 exit /b 1
+  )
+
+  call npm run build >> "%LOG_FILE%" 2>&1
+  if errorlevel 1 exit /b 1
 )
 
-REM Start the server
-echo Starting OrchestX Server...
-echo.
-echo Server will be available at:
-echo   - Local: http://localhost:4000
-echo   - Network: http://YOUR_IP:4000
-echo.
-echo Press Ctrl+C to stop the server
-echo ===================================
-echo.
+echo %DATE% %TIME% - Starting server >> "%LOG_FILE%"
+node dist/app.js >> "%LOG_FILE%" 2>&1
 
-node dist/app.js
-
-REM If we get here, the server stopped
-echo.
-echo Server stopped.
-pause
-
+echo %DATE% %TIME% - Server stopped >> "%LOG_FILE%"
+exit /b 0
