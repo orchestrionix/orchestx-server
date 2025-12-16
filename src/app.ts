@@ -7,6 +7,7 @@ import { PresenceClient } from './utils/presenceClient';
 
 const app = express();
 const PORT = 4000;
+const QR_PORT = 4001;
         
 // Create HTTP server
 const server = createServer(app);
@@ -33,6 +34,29 @@ initializeWebSocket(server);
 // Initialize Presence Client
 const presenceClient = new PresenceClient();
 
+// Create QR code app server
+const qrApp = express();
+const qrServer = createServer(qrApp);
+
+// QR app middleware
+qrApp.use(cors());
+qrApp.use(express.json());
+
+// Serve QR React build folder
+const qrBuildPath = path.join(__dirname, 'qr-build');
+qrApp.use(express.static(qrBuildPath));
+
+// Hostname API endpoint for QR app
+qrApp.get('/api/hostname', (req, res) => {
+    const { hostname } = require('os');
+    res.json({ hostname: hostname() });
+});
+
+// Serve QR React app for all unknown routes
+qrApp.get('*', (req, res) => {
+    res.sendFile(path.join(qrBuildPath, 'index.html'));
+});
+
 // Listen on all network interfaces
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`OrchestX Server is running at http://0.0.0.0:${PORT}`);
@@ -45,10 +69,20 @@ server.listen(PORT, '0.0.0.0', () => {
     });
 });
 
+// Start QR code server
+qrServer.listen(QR_PORT, '0.0.0.0', () => {
+    console.log(`QR Code Server is running at http://0.0.0.0:${QR_PORT}`);
+    console.log(`QR app should be accessible at http://localhost:${QR_PORT}`);
+    console.log(`QR Build folder location: ${qrBuildPath}`);
+});
+
 // Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully...');
     presenceClient.stop();
+    qrServer.close(() => {
+        console.log('QR Server closed');
+    });
     server.close(() => {
         console.log('Server closed');
         process.exit(0);
@@ -58,6 +92,9 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully...');
     presenceClient.stop();
+    qrServer.close(() => {
+        console.log('QR Server closed');
+    });
     server.close(() => {
         console.log('Server closed');
         process.exit(0);

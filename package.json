@@ -5,11 +5,12 @@
   "main": "dist/app.js",
   "scripts": {
     "start": "node dist/app.js",
-    "build": "tsc --project . && npm run copy-build",
+    "build": "tsc --project . && npm run copy-build && npm run copy-qr-build",
     "serve": "node dist/app.js",
     "dev": "nodemon src/app.ts --exec ts-node src/app.ts",
     "clean": "rimraf dist",
-    "copy-build": "xcopy /E /I /Y src\\build dist\\build"
+    "copy-build": "xcopy /E /I /Y src\\build dist\\build",
+    "copy-qr-build": "if exist src\\qr-build xcopy /E /I /Y src\\qr-build dist\\qr-build"
   },
   "keywords": [],
   "author": "",

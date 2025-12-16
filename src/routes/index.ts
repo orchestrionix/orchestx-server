@@ -35,6 +35,7 @@ import directoryTree from "directory-tree";
 import WebSocket from 'ws';
 import { Server } from 'http';
 import { getSettings, updateSettings } from "../utils/settings";
+import { hostname } from 'os';
 
 const router = Router();
 
@@ -132,6 +133,12 @@ router.post("/load-playlist-remote-player", async (req, res) => {
   try {
     console.log("Loading playlist:", path);
     console.log("Playing index:", playIndex);
+
+    const state = await TCPRemotePlayerState();
+
+    if (state.status === "playing") {
+      await TCPToggleRemotePlayer();
+    }
     
     // load the new playlist
     await TCPLoadPlaylistRemotePlayer(path);
@@ -556,6 +563,19 @@ router.put('/settings', async (req, res) => {
       });
   } catch (error: any) {
       res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================================
+// =================== H O S T N A M E ======================
+// ==========================================================
+
+router.get("/hostname", (req, res) => {
+  try {
+    const machineHostname = hostname();
+    res.json({ hostname: machineHostname });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 
