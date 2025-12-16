@@ -46,10 +46,40 @@ qrApp.use(express.json());
 const qrBuildPath = path.join(__dirname, 'qr-build');
 qrApp.use(express.static(qrBuildPath));
 
-// Hostname API endpoint for QR app
+// Hostname and IP API endpoint for QR app
 qrApp.get('/api/hostname', (req, res) => {
-    const { hostname } = require('os');
-    res.json({ hostname: hostname() });
+    const os = require('os');
+    const networkInterfaces = os.networkInterfaces();
+    const machineHostname = os.hostname();
+    
+    // Find the first non-internal IPv4 address (prefer 192.168.x.x or 10.x.x.x)
+    let ipAddress = null;
+    for (const interfaceName of Object.keys(networkInterfaces)) {
+        const addresses = networkInterfaces[interfaceName];
+        for (const addr of addresses) {
+            // Handle both string ('IPv4') and number (4) family values
+            const isIPv4 = addr.family === 'IPv4' || addr.family === 4;
+            if (isIPv4 && !addr.internal) {
+                // Prefer addresses starting with 192.168 or 10.
+                if (addr.address.startsWith('192.168.') || addr.address.startsWith('10.')) {
+                    ipAddress = addr.address;
+                    break;
+                }
+                // Otherwise, use the first non-internal IPv4 as fallback
+                if (!ipAddress) {
+                    ipAddress = addr.address;
+                }
+            }
+        }
+        if (ipAddress && ipAddress.startsWith('192.168.')) {
+            break;
+        }
+    }
+    
+    res.json({ 
+        hostname: machineHostname,
+        ip: ipAddress || 'localhost'
+    });
 });
 
 // Serve QR React app for all unknown routes
