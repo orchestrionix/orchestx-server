@@ -8,6 +8,7 @@ import { PresenceClient } from './utils/presenceClient';
 const app = express();
 const PORT = 4000;
 const QR_PORT = 4001;
+const SIMPLE_PORT = 4002;
         
 // Create HTTP server
 const server = createServer(app);
@@ -87,6 +88,23 @@ qrApp.get('*', (req, res) => {
     res.sendFile(path.join(qrBuildPath, 'index.html'));
 });
 
+// Create Simplified app server
+const simpleApp = express();
+const simpleServer = createServer(simpleApp);
+
+// Simplified app middleware
+simpleApp.use(cors());
+simpleApp.use(express.json());
+
+// Serve Simplified React build folder
+const simpleBuildPath = path.join(__dirname, 'simple-build');
+simpleApp.use(express.static(simpleBuildPath));
+
+// Serve Simplified React app for all unknown routes
+simpleApp.get('*', (req, res) => {
+    res.sendFile(path.join(simpleBuildPath, 'index.html'));
+});
+
 // Listen on all network interfaces
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`OrchestX Server is running at http://0.0.0.0:${PORT}`);
@@ -106,10 +124,20 @@ qrServer.listen(QR_PORT, '0.0.0.0', () => {
     console.log(`QR Build folder location: ${qrBuildPath}`);
 });
 
+// Start Simplified app server
+simpleServer.listen(SIMPLE_PORT, '0.0.0.0', () => {
+    console.log(`Simplified App Server is running at http://0.0.0.0:${SIMPLE_PORT}`);
+    console.log(`Simplified app should be accessible at http://localhost:${SIMPLE_PORT}`);
+    console.log(`Simplified Build folder location: ${simpleBuildPath}`);
+});
+
 // Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully...');
     presenceClient.stop();
+    simpleServer.close(() => {
+        console.log('Simplified Server closed');
+    });
     qrServer.close(() => {
         console.log('QR Server closed');
     });
@@ -122,6 +150,9 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
     console.log('SIGINT received, shutting down gracefully...');
     presenceClient.stop();
+    simpleServer.close(() => {
+        console.log('Simplified Server closed');
+    });
     qrServer.close(() => {
         console.log('QR Server closed');
     });

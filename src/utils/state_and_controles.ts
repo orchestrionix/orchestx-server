@@ -122,7 +122,7 @@ export async function TCPRemotePlayerActivePlaylist(): Promise<any> {
 }
 
 export async function TCPPlayItemRemotePlayer(index: string): Promise<any> {
-    console.log("play item: at index", Number(index));
+    // console.log("play item: at index", Number(index));
 
     return new Promise((resolve, reject) => {
         const client = new Socket();

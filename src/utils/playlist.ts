@@ -55,7 +55,7 @@ export async function addSongToPlaylist(
   playlistName: string,
   songPath: string
 ) {
-  console.log("Adding song to playlist");
+  // console.log("Adding song to playlist");
   const settings = await getSettings();
   const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
   const filePath = join(targetDirectory, `${playlistName}.mdl`);
@@ -75,7 +75,7 @@ export async function addSongToPlaylist(
   content += `\n${songPath}`;
   await writeFile(filePath, content, { encoding: "utf8" });
 
-  console.log(`Song added to playlist "${playlistName}" successfully.`);
+  // console.log(`Song added to playlist "${playlistName}" successfully.`);
 }
 
 export async function removeSongFromPlaylistByIndex(
@@ -108,14 +108,12 @@ export async function removeSongFromPlaylistByIndex(
     .join("\n");
   await writeFile(filePath, updatedSongs, { encoding: "utf8" });
 
-  console.log(
-    `Song at index ${songIndex} removed from playlist "${playlistName}" successfully.`
-  );
+  // console.log(`Song at index ${songIndex} removed from playlist "${playlistName}" successfully.`);
 }
 
 export async function getAllPlaylists() {
   const settings = await getSettings();
-  console.log("Getting all playlists");
+  // console.log("Getting all playlists");
   const targetDirectory = join(settings.PLAYER_PLAYLIST_DIRECTORY);
 
   if (!(await fileExists(targetDirectory))) {
@@ -160,7 +158,7 @@ export async function renamePlaylist(
 
   try {
     await fsPromises.rename(oldFilePath, newFilePath);
-    console.log(`Playlist renamed from "${oldPlaylistName}" to "${newPlaylistName}" successfully.`);
+    // console.log(`Playlist renamed from "${oldPlaylistName}" to "${newPlaylistName}" successfully.`);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Failed to rename playlist: ${errorMessage}`);
@@ -192,7 +190,7 @@ export async function updatePlaylist(
     const content = songs.join('\n');
     await writeFile(filePath, content, { encoding: "utf8" });
 
-    console.log(`Playlist "${playlistName}" updated successfully.`);
+    // console.log(`Playlist "${playlistName}" updated successfully.`);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Failed to update playlist "${playlistName}": ${errorMessage}`);
@@ -210,7 +208,7 @@ export async function deletePlaylist(playlistName: string): Promise<void> {
 
   try {
     await fsPromises.unlink(filePath);
-    console.log(`Playlist "${playlistName}" deleted successfully.`);
+    // console.log(`Playlist "${playlistName}" deleted successfully.`);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Failed to delete playlist "${playlistName}": ${errorMessage}`);

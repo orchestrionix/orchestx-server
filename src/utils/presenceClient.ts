@@ -88,7 +88,7 @@ export class PresenceClient {
   private reconnectDelay: number = 1000; // Start with 1 second
   private maxReconnectDelay: number = 30000; // Max 30 seconds
   private isConnecting: boolean = false;
-  private shouldConnect: boolean = true;
+  private shouldConnect: boolean = false;
   private config: PresenceConfig;
 
   constructor() {

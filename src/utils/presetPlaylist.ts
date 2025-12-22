@@ -111,7 +111,7 @@ export async function addSongToPresetPlaylist(
   
   await writeFile(filePath, content, { encoding: "utf8" });
 
-  console.log(`Song added to preset playlist ${presetIndex} successfully.`);
+  // console.log(`Song added to preset playlist ${presetIndex} successfully.`);
 }
 
 /**
@@ -147,9 +147,7 @@ export async function removeSongFromPresetPlaylistByIndex(
     .join("\n");
   await writeFile(filePath, updatedSongs, { encoding: "utf8" });
 
-  console.log(
-    `Song at index ${songIndex} removed from preset playlist ${presetIndex} successfully.`
-  );
+  // console.log(`Song at index ${songIndex} removed from preset playlist ${presetIndex} successfully.`);
 }
 
 /**
@@ -171,7 +169,7 @@ export async function updatePresetPlaylist(
   try {
     const content = songs.join('\n');
     await writeFile(filePath, content, { encoding: "utf8" });
-    console.log(`Preset playlist ${presetIndex} updated successfully.`);
+    // console.log(`Preset playlist ${presetIndex} updated successfully.`);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     throw new Error(`Failed to update preset playlist ${presetIndex}: ${errorMessage}`);

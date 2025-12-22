@@ -55,9 +55,9 @@ router.get("/get-remote-player-state", async (req, res) => {
 
 router.get("/get-remote-player-active-playlist", async (req, res) => {
   try {
-    console.log("Getting remote player active playlist");
+    // console.log("Getting remote player active playlist");
     const playlist = await TCPRemotePlayerActivePlaylist();
-    console.log("Remote player active playlist:", JSON.stringify(playlist, null, 2));
+    // console.log("Remote player active playlist:", JSON.stringify(playlist, null, 2));
     res.json(playlist);
   } catch (error: any) {
     res.status(500).json({ error: error?.message });
@@ -94,7 +94,7 @@ router.get("/prev-remote-player", async (req, res) => {
 router.post("/play-item-remote-player", async (req, res) => {
   const { songIndex } = req.body;
 
-  console.log("Playing item remote player:", songIndex);
+  // console.log("Playing item remote player:", songIndex);
 
   if (!songIndex && songIndex !== 0) {
     return res.status(400).json({ error: "Song index is required" });
@@ -131,8 +131,8 @@ router.post("/load-playlist-remote-player", async (req, res) => {
   }
 
   try {
-    console.log("Loading playlist:", path);
-    console.log("Playing index:", playIndex);
+    // console.log("Loading playlist:", path);
+    // console.log("Playing index:", playIndex);
 
     const state = await TCPRemotePlayerState();
 
@@ -164,7 +164,7 @@ router.post("/set-volume-remote-player", async (req, res) => {
   }
 
   try {
-    console.log("Setting volume:", volume);
+    // console.log("Setting volume:", volume);
     const result = await TCPSetVolumeRemotePlayer(Number(volume));
     res.json({ success: result });
   } catch (error: any) {
@@ -589,10 +589,10 @@ export function initializeWebSocket(server: Server) {
   wss = new WebSocket.Server({ server });
   
   wss.on('connection', (ws) => {
-    console.log('New WebSocket connection');
+    // console.log('New WebSocket connection');
     
     // Add connection count logging
-    console.log(`Active connections: ${wss.clients.size}`);
+    // console.log(`Active connections: ${wss.clients.size}`);
     
     // Poll player state every 500ms (was 100ms)
     // Client-side interpolation handles smooth progress bar animation at 60fps
@@ -608,7 +608,7 @@ export function initializeWebSocket(server: Server) {
 
     ws.on('close', () => {
       clearInterval(intervalId);
-      console.log('Client disconnected');
+      // console.log('Client disconnected');
     });
   });
 }
