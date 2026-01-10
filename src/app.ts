@@ -13,6 +13,12 @@ const SIMPLE_PORT = 4002;
 // Create HTTP server
 const server = createServer(app);
 
+// Log ALL incoming requests for debugging
+app.use((req, res, next) => {
+  console.log(`[INCOMING REQUEST] ${req.method} ${req.url}`);
+  next();
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -20,6 +26,17 @@ app.use(express.json());
 // Serve React build folder
 const buildPath = path.join(__dirname, 'build');
 app.use(express.static(buildPath));
+
+// Prevent caching for all API requests and log them
+app.use('/api', (req, res, next) => {
+  // Set cache-control headers to prevent any caching
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  
+  console.log(`[API Request] ${req.method} ${req.path}`);
+  next();
+});
 
 // API routes
 app.use('/api', routes);

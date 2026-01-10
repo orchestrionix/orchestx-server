@@ -1,7 +1,6 @@
 {
-  "short_name": "OrchestX",
-  "name": "OrchestX Music Player",
-  "description": "A modern music player application",
+  "short_name": "React App",
+  "name": "Create React App Sample",
   "icons": [
     {
       "src": "favicon/favicon.ico",
@@ -11,21 +10,16 @@
     {
       "src": "favicon/android-chrome-192x192.png",
       "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
+      "sizes": "192x192"
     },
     {
       "src": "favicon/android-chrome-512x512.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "512x512"
     }
   ],
-  "start_url": "/",
-  "scope": "/",
+  "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "theme_color": "#000000",
-  "background_color": "#ffffff",
-  "categories": ["music", "entertainment"]
+  "background_color": "#ffffff"
 }
