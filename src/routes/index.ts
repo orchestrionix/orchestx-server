@@ -56,9 +56,9 @@ router.get("/get-remote-player-state", async (req, res) => {
 router.get("/get-remote-player-active-playlist", async (req, res) => {
   console.log("Route handler triggered: GET /get-remote-player-active-playlist");
   try {
-    console.log("Getting remote player active playlist");
+    // console.log("Getting remote player active playlist");
     const playlist = await TCPRemotePlayerActivePlaylist();
-    console.log("Remote player active playlist:", JSON.stringify(playlist, null, 2));
+   
     res.json(playlist);
   } catch (error: any) {
     console.error("Error getting remote player active playlist:", error);
