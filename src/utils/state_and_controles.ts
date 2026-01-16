@@ -2,6 +2,94 @@ import { Socket } from "net";
 import { TCP_PORT, TCP_HOST } from "./constants";
 import { extractJson } from ".";
 
+/**
+ * Helper function to properly handle TCP streaming for JSON responses.
+ * Buffers all incoming chunks until a complete JSON response is received.
+ * 
+ * @param client - The TCP socket client
+ * @param timeoutMs - Timeout in milliseconds (default: 5000)
+ * @returns Promise that resolves with the parsed JSON response
+ */
+function receiveJsonResponse(client: Socket, timeoutMs: number = 5000): Promise<any> {
+    return new Promise((resolve, reject) => {
+        let buffer = '';
+        let timeout: NodeJS.Timeout | null = null;
+        let isResolved = false;
+
+        const cleanup = () => {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+            if (!isResolved) {
+                isResolved = true;
+            }
+        };
+
+        const tryParse = () => {
+            try {
+                // Try to parse the accumulated buffer as JSON
+                const parsed = JSON.parse(buffer);
+                cleanup();
+                client.destroy();
+                resolve(parsed);
+                return true;
+            } catch (error) {
+                // JSON is incomplete, wait for more data
+                return false;
+            }
+        };
+
+        // Set up timeout
+        timeout = setTimeout(() => {
+            if (!isResolved) {
+                cleanup();
+                client.destroy();
+                reject(new Error('Timeout waiting for complete JSON response'));
+            }
+        }, timeoutMs);
+
+        // Handle incoming data chunks
+        client.on('data', (data: Buffer) => {
+            if (isResolved) return;
+            
+            // Append new chunk to buffer
+            buffer += data.toString();
+            
+            // Try to parse complete JSON
+            tryParse();
+        });
+
+        // Handle connection end (server closed the connection)
+        client.on('end', () => {
+            if (isResolved) return;
+            
+            // Try to parse whatever we have
+            if (buffer.trim()) {
+                try {
+                    const parsed = JSON.parse(buffer);
+                    cleanup();
+                    resolve(parsed);
+                } catch (error) {
+                    cleanup();
+                    reject(new Error('Incomplete JSON response received'));
+                }
+            } else {
+                cleanup();
+                reject(new Error('No data received'));
+            }
+        });
+
+        // Handle errors
+        client.on('error', (error: Error) => {
+            if (!isResolved) {
+                cleanup();
+                reject(error);
+            }
+        });
+    });
+}
+
 export async function TCPPrevRemotePlayer(): Promise<boolean> {
     return new Promise((resolve, reject) => {
         const client = new Socket();
@@ -104,19 +192,20 @@ export async function TCPRemotePlayerActivePlaylist(): Promise<any> {
     return new Promise((resolve, reject) => {
         const client = new Socket();
 
+        // Use proper TCP buffering to handle multi-chunk responses
+        receiveJsonResponse(client, 5000)
+            .then((result) => {
+                console.log("GetPlaylist response received:", result);
+                resolve(result);
+            })
+            .catch((error) => {
+                console.error("GetPlaylist error:", error);
+                reject(error);
+            });
+
         client.connect(TCP_PORT, TCP_HOST, () => {
             const command = "GetPlaylist\n";
             client.write(command);
-        });
-
-        client.on('data', (data: any) => {
-            client.destroy();
-            resolve(extractJson(data.toString()));
-        });
-
-        client.on('error', (error: any) => {
-            client.destroy();
-            reject(error);
         });
     });
 }
