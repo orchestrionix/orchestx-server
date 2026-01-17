@@ -159,17 +159,17 @@ export class PresenceClient {
           const message = JSON.parse(data.toString());
           this.handleMessage(message);
         } catch (error) {
-          console.error('Presence: Failed to parse message:', error);
+          // console.error('Presence: Failed to parse message:', error);
         }
       });
 
       this.ws.on('error', (error) => {
-        console.error('Presence: WebSocket error:', error.message);
+        // console.error('Presence: WebSocket error:', error.message);
         this.isConnecting = false;
       });
 
       this.ws.on('close', (code, reason) => {
-        console.log(`Presence: WebSocket closed (code: ${code}, reason: ${reason.toString()})`);
+        // console.log(`Presence: WebSocket closed (code: ${code}, reason: ${reason.toString()})`);
         this.isConnecting = false;
         this.ws = null;
 
@@ -205,9 +205,9 @@ export class PresenceClient {
 
     try {
       this.ws.send(JSON.stringify(helloMessage));
-      console.log('Presence: Sent hello message:', helloMessage);
+      // console.log('Presence: Sent hello message:', helloMessage);
     } catch (error) {
-      console.error('Presence: Failed to send hello message:', error);
+      // console.error('Presence: Failed to send hello message:', error);
     }
   }
 

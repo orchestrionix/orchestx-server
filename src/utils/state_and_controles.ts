@@ -195,11 +195,11 @@ export async function TCPRemotePlayerActivePlaylist(): Promise<any> {
         // Use proper TCP buffering to handle multi-chunk responses
         receiveJsonResponse(client, 5000)
             .then((result) => {
-                console.log("GetPlaylist response received:", result);
+                // console.log("GetPlaylist response received:", result);
                 resolve(result);
             })
             .catch((error) => {
-                console.error("GetPlaylist error:", error);
+                // console.error("GetPlaylist error:", error);
                 reject(error);
             });
 
