@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "build": "tsc --project . && npm run copy-build && npm run copy-qr-build",
+    "build:exe": "npm run build && pkg .",
     "serve": "node dist/app.js",
     "dev": "nodemon src/app.ts --exec ts-node src/app.ts",
     "clean": "rimraf dist",
@@ -28,8 +29,23 @@
     "@types/node": "^20.12.7",
     "@types/ws": "^8.5.14",
     "nodemon": "^3.1.0",
+    "pkg": "^5.8.1",
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
-  }
+  },
+  "pkg": {
+    "scripts": [
+      "dist/**/*.js"
+    ],
+    "assets": [
+      "dist/build/**/*",
+      "dist/qr-build/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "executable"
+  },
+  "bin": "dist/app.js"
 }

@@ -54,14 +54,12 @@ router.get("/get-remote-player-state", async (req, res) => {
 });
 
 router.get("/get-remote-player-active-playlist", async (req, res) => {
-  console.log("Route handler triggered: GET /get-remote-player-active-playlist");
   try {
     // console.log("Getting remote player active playlist");
     const playlist = await TCPRemotePlayerActivePlaylist();
-   
+    console.log("Remote player active playlist:", JSON.stringify(playlist, null, 2));
     res.json(playlist);
   } catch (error: any) {
-    console.error("Error getting remote player active playlist:", error);
     res.status(500).json({ error: error?.message });
   }
 });
@@ -460,6 +458,20 @@ router.get("/get-all-playlists", async (req, res) => {
 // ==========================================================
 
 /**
+ * GET /api/presence-enabled
+ * Returns whether the presence client is enabled (for central hub logo link)
+ */
+router.get('/presence-enabled', async (req, res) => {
+  try {
+    const settings = await getSettings();
+    const enabled = settings.ENABLE_PRESENCE?.toLowerCase() === 'true';
+    res.json({ enabled });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * GET /api/settings
  * Retrieves all current settings from the settings.ini file
  * 
@@ -583,7 +595,7 @@ router.get("/hostname", (req, res) => {
 
 // ==========================================================
 // =================== W E B S O C K E T ====================
-// ==========================================================
+// =======================c===================================
 
 let wss: WebSocket.Server;
 

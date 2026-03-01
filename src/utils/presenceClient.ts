@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import { networkInterfaces, hostname } from 'os';
+import { getSettings } from './settings';
 
 /**
  * Checks if the system has internet connectivity
@@ -7,8 +8,6 @@ import { networkInterfaces, hostname } from 'os';
  */
 async function hasInternetAccess(): Promise<boolean> {
   try {
-    // Try to resolve a well-known DNS server
-    // This is a lightweight check that doesn't require HTTP
     const dns = await import('dns/promises');
     await dns.resolve('google.com');
     return true;
@@ -17,58 +16,50 @@ async function hasInternetAccess(): Promise<boolean> {
   }
 }
 
+const DEFAULT_PRESENCE_WS_URL = 'wss://orchestx-reddis-production.up.railway.app/ws';
+
 /**
- * Gets the local URL where the React app is accessible
- * Falls back to building from hostname and port if not provided
+ * Gets the local URL where the React app is accessible.
+ * Uses LOCAL_REACT_URL from settings if set, else auto-detects from network + PORT.
  */
-function getLocalUrl(): string {
-  const envUrl = process.env.LOCAL_REACT_URL;
-  if (envUrl) {
-    return envUrl;
+function getLocalUrl(settingsLocalUrl?: string, port: string = '4000'): string {
+  if (settingsLocalUrl && settingsLocalUrl.trim()) {
+    return settingsLocalUrl.trim();
   }
 
-  // Try to get the local IP address
   const nets = networkInterfaces();
-  const PORT = process.env.PORT || '4000';
-  
   for (const name of Object.keys(nets)) {
     const net = nets[name];
     if (net) {
       for (const iface of net) {
-        // Skip internal (i.e. 127.0.0.1) and non-IPv4 addresses
         if (iface.family === 'IPv4' && !iface.internal) {
-          return `http://${iface.address}:${PORT}`;
+          return `http://${iface.address}:${port}`;
         }
       }
     }
   }
-
-  // Fallback to localhost
-  return `http://localhost:${PORT}`;
+  return `http://localhost:${port}`;
 }
 
 /**
- * Gets the instrument ID from environment variable
- * Falls back to a generated stable ID if not provided
+ * Gets the instrument ID from settings or generates one from hostname.
  */
-function getInstrumentId(): string {
-  const envId = process.env.INSTRUMENT_ID;
-  if (envId) {
-    return envId;
+function getInstrumentId(settingsId?: string): string {
+  if (settingsId && settingsId.trim()) {
+    return settingsId.trim();
   }
-
-  // Generate a stable ID based on machine hostname
-  // This ensures the same ID across reboots on the same machine
   const machineHostname = hostname();
   return `INST-${machineHostname.toUpperCase().replace(/[^A-Z0-9]/g, '-')}`;
 }
 
 /**
- * Gets the instrument name from environment variable
- * Falls back to instrument ID if not provided
+ * Gets the instrument name from settings or falls back to instrument ID.
  */
-function getInstrumentName(): string {
-  return process.env.INSTRUMENT_NAME || getInstrumentId();
+function getInstrumentName(settingsName?: string, instrumentId?: string): string {
+  if (settingsName && settingsName.trim()) {
+    return settingsName.trim();
+  }
+  return instrumentId ?? getInstrumentId();
 }
 
 interface PresenceConfig {
@@ -85,39 +76,44 @@ interface PresenceConfig {
 export class PresenceClient {
   private ws: WebSocket | null = null;
   private reconnectTimer: NodeJS.Timeout | null = null;
-  private reconnectDelay: number = 1000; // Start with 1 second
-  private maxReconnectDelay: number = 30000; // Max 30 seconds
+  private reconnectDelay: number = 1000;
+  private maxReconnectDelay: number = 30000;
   private isConnecting: boolean = false;
   private shouldConnect: boolean = false;
-  private config: PresenceConfig;
+  private config: PresenceConfig = {
+    wsUrl: DEFAULT_PRESENCE_WS_URL,
+    instrumentId: '',
+    name: '',
+    localUrl: '',
+  };
 
   constructor() {
-    const wsUrl = process.env.PRESENCE_WS_URL || 'wss://orchestx-reddis-production.up.railway.app/ws';
-    
-    this.config = {
-      wsUrl,
-      instrumentId: getInstrumentId(),
-      name: getInstrumentName(),
-      localUrl: getLocalUrl(),
-    };
-
-    console.log('Presence Client initialized:');
-    console.log(`  Instrument ID: ${this.config.instrumentId}`);
-    console.log(`  Name: ${this.config.name}`);
-    console.log(`  Local URL: ${this.config.localUrl}`);
-    console.log(`  Presence URL: ${this.config.wsUrl}`);
+    // Config is built from settings.ini in start()
   }
 
   /**
    * Starts the presence client
-   * Checks for internet access first, then connects
+   * Reads config from settings.ini, checks internet access, then connects
    */
   async start(): Promise<void> {
-    if (!this.shouldConnect) {
-      return;
-    }
+    this.shouldConnect = true;
 
-    // Check internet connectivity before attempting connection
+    const settings = await getSettings();
+    const port = settings.PORT ?? '4000';
+    const instrumentId = getInstrumentId(settings.INSTRUMENT_ID);
+    this.config = {
+      wsUrl: settings.PRESENCE_WS_URL?.trim() || DEFAULT_PRESENCE_WS_URL,
+      instrumentId,
+      name: getInstrumentName(settings.INSTRUMENT_NAME, instrumentId),
+      localUrl: getLocalUrl(settings.LOCAL_REACT_URL, port),
+    };
+
+    console.log('Presence Client initialized (from settings.ini):');
+    console.log(`  Instrument ID: ${this.config.instrumentId}`);
+    console.log(`  Name: ${this.config.name}`);
+    console.log(`  Local URL: ${this.config.localUrl}`);
+    console.log(`  Presence URL: ${this.config.wsUrl}`);
+
     const hasInternet = await hasInternetAccess();
     if (!hasInternet) {
       console.log('Presence: No internet access detected. Skipping presence announcement.');

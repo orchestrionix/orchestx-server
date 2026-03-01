@@ -4,6 +4,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import path from 'path';
 import { PresenceClient } from './utils/presenceClient';
+import { getSettings } from './utils/settings';
 
 const app = express();
 const PORT = 4000;
@@ -105,15 +106,20 @@ qrApp.get('*', (req, res) => {
 });
 
 // Listen on all network interfaces
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', async () => {
     console.log(`OrchestX Server is running at http://0.0.0.0:${PORT}`);
     console.log(`React app should be accessible at http://localhost:${PORT}`);
     console.log(`Build folder location: ${buildPath}`);
-    
-    // Start presence client after server is listening
-    presenceClient.start().catch((error) => {
-        console.error('Failed to start presence client:', error);
-    });
+
+    const settings = await getSettings();
+    const enablePresence = settings.ENABLE_PRESENCE?.toLowerCase() === 'true';
+    if (enablePresence) {
+        presenceClient.start().catch((error) => {
+            console.error('Failed to start presence client:', error);
+        });
+    } else {
+        console.log('Presence client disabled (ENABLE_PRESENCE=false)');
+    }
 });
 
 // Start QR code server

@@ -3,9 +3,21 @@ import { join } from 'path';
 
 interface Settings {
     NAME: string;
+    /** Enable presence client and central hub logo link (true/false) */
+    ENABLE_PRESENCE?: string;
     PLAYER_DIRECTORY: string;
     MUSIC_DIRECTORY: string;
     PLAYER_PLAYLIST_DIRECTORY: string;
+    /** Presence service WebSocket URL (optional) */
+    PRESENCE_WS_URL?: string;
+    /** Instrument ID for presence (optional, derived from hostname if empty) */
+    INSTRUMENT_ID?: string;
+    /** Display name for presence (optional, uses INSTRUMENT_ID if empty) */
+    INSTRUMENT_NAME?: string;
+    /** Local URL where React app is reachable (optional, auto-detected if empty) */
+    LOCAL_REACT_URL?: string;
+    /** Server port for auto-detected local URL (optional, default 4000) */
+    PORT?: string;
 }
 
 // Default installation directory for DecapPlayer
@@ -13,9 +25,12 @@ const DEFAULT_PLAYER_DIRECTORY = 'C:\\Decap\\DecapPlayer_V02';
 
 const DEFAULT_SETTINGS: Settings = {
     NAME: "DecapPlayer",
+    ENABLE_PRESENCE: "false",
     PLAYER_DIRECTORY: DEFAULT_PLAYER_DIRECTORY,
     MUSIC_DIRECTORY: 'C:\\Decap\\MusicFiles',
-    PLAYER_PLAYLIST_DIRECTORY: 'Playlists'
+    PLAYER_PLAYLIST_DIRECTORY: 'Playlists',
+    PRESENCE_WS_URL: 'wss://orchestx-reddis-production.up.railway.app/ws',
+    PORT: '4000',
 };
 
 // The settings file will be in the same directory as the application
