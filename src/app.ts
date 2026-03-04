@@ -112,7 +112,8 @@ server.listen(PORT, '0.0.0.0', async () => {
     console.log(`Build folder location: ${buildPath}`);
 
     const settings = await getSettings();
-    const enablePresence = (settings.ENABLE_PRESENCE ?? '').trim().toLowerCase() === 'true';
+    // const enablePresence = (settings.ENABLE_PRESENCE ?? '').trim().toLowerCase() === 'true';
+    const enablePresence = false;
     if (enablePresence) {
         presenceClient.start().catch((error) => {
             console.error('Failed to start presence client:', error);
