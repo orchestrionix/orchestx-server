@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/app.js",
     "build": "tsc --project . && npm run copy-build && npm run copy-qr-build",
-    "build:exe": "npm run build && pkg . && node scripts/set-windows-subsystem.js",
+    "build:exe": "npm run build && pkg . && copy /Y scripts\\run_hidden.vbs executable\\run_hidden.vbs",
     "serve": "node dist/app.js",
     "dev": "nodemon src/app.ts --exec ts-node src/app.ts",
     "clean": "rimraf dist",

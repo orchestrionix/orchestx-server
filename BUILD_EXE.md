@@ -25,19 +25,23 @@ This will:
 1. Compile TypeScript to JavaScript
 2. Copy React build folders (build and qr-build)
 3. Package everything into a single executable
-4. Patch the .exe to use the Windows GUI subsystem (no console window when run)
+4. Copy `run_hidden.vbs` into the `executable/` folder
 
-The executable will be created in the `executable/` folder as:
+The executable folder will contain:
 - `orchestx-server.exe` (Windows x64)
+- `run_hidden.vbs` (launcher that runs the exe with no console window)
 
 ## Running the Executable
 
-1. Copy `orchestx-server.exe` to your desired location
-2. Copy `settings.ini` to the same directory (or let it be created with defaults)
-3. Run the executable:
-```bash
-orchestx-server.exe
-```
+**Option A – With console window (for debugging)**  
+Double‑click `orchestx-server.exe` or run it from a command prompt.
+
+**Option B – No console window (recommended)**  
+1. Copy both `orchestx-server.exe` and `run_hidden.vbs` to your desired folder (e.g. `C:\DECAP Virtual Orchestration\`).
+2. Copy `settings.ini` to the same directory (or let it be created with defaults).
+3. Run `run_hidden.vbs` (double‑click or start it from Startup). The server runs with no visible console.
+
+To start automatically at login: press **Win + R**, type `shell:startup`, put a shortcut to `run_hidden.vbs` in that folder (or copy the .vbs there and ensure `orchestx-server.exe` is in the same folder as the .vbs).
 
 ## Important Notes
 
