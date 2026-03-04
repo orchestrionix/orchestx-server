@@ -45,10 +45,11 @@ async function readSettings(): Promise<Settings> {
         const settings: Partial<Settings> = {};
         
         content.split('\n').forEach(line => {
-            const [key, ...valueParts] = line.split('=').map(part => part.trim());
-            const value = valueParts.join('='); // Rejoin in case value contains =
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('#')) return;
+            const [key, ...valueParts] = trimmed.split('=').map(part => part.trim());
+            const value = valueParts.join('=').trim(); // Rejoin in case value contains =
             if (key && value) {
-                // Remove quotes if present
                 const cleanValue = value.replace(/^"(.*)"$/, '$1');
                 settings[key as keyof Settings] = cleanValue;
             }

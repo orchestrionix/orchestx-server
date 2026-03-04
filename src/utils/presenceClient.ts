@@ -93,12 +93,18 @@ export class PresenceClient {
 
   /**
    * Starts the presence client
-   * Reads config from settings.ini, checks internet access, then connects
+   * Reads config from settings.ini, checks ENABLE_PRESENCE, then internet access, then connects
    */
   async start(): Promise<void> {
+    const settings = await getSettings();
+    const enablePresence = settings.ENABLE_PRESENCE?.trim().toLowerCase() === 'true';
+    if (!enablePresence) {
+      this.shouldConnect = false;
+      return;
+    }
+
     this.shouldConnect = true;
 
-    const settings = await getSettings();
     const port = settings.PORT ?? '4000';
     const instrumentId = getInstrumentId(settings.INSTRUMENT_ID);
     this.config = {
