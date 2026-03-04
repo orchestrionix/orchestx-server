@@ -25,6 +25,7 @@ This will:
 1. Compile TypeScript to JavaScript
 2. Copy React build folders (build and qr-build)
 3. Package everything into a single executable
+4. Patch the .exe to use the Windows GUI subsystem (no console window when run)
 
 The executable will be created in the `executable/` folder as:
 - `orchestx-server.exe` (Windows x64)
