@@ -34,7 +34,7 @@ app.use('/api', (req, res, next) => {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   
-  console.log(`[API Request] ${req.method} ${req.path}`);
+  // console.log(`[API Request] ${req.method} ${req.path}`);
   next();
 });
 

@@ -55,9 +55,7 @@ router.get("/get-remote-player-state", async (req, res) => {
 
 router.get("/get-remote-player-active-playlist", async (req, res) => {
   try {
-    // console.log("Getting remote player active playlist");
     const playlist = await TCPRemotePlayerActivePlaylist();
-    console.log("Remote player active playlist:", JSON.stringify(playlist, null, 2));
     res.json(playlist);
   } catch (error: any) {
     res.status(500).json({ error: error?.message });
@@ -614,7 +612,8 @@ export function initializeWebSocket(server: Server) {
     while (true) {
       const start = Date.now();
       try {
-        const state = await TCPRemotePlayerState();
+        const result = await TCPRemotePlayerState();
+        const state = result?.state != null ? result.state : result;
         const payload = JSON.stringify({
           serverTime: Date.now(),
           state,
