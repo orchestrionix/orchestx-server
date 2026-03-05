@@ -595,34 +595,53 @@ router.get("/hostname", (req, res) => {
 
 // ==========================================================
 // =================== W E B S O C K E T ====================
-// =======================c===================================
+// ==========================================================
+
+const WS_POLL_INTERVAL_MS = 500;
+const WS_BACKPRESSURE_LIMIT_BYTES = 64 * 1024; // 64KB - skip send if buffer above this
+const WS_PING_INTERVAL_MS = 5000;
 
 let wss: WebSocket.Server;
 
 export function initializeWebSocket(server: Server) {
-  wss = new WebSocket.Server({ server });
-  
-  wss.on('connection', (ws) => {
-    // console.log('New WebSocket connection');
-    
-    // Add connection count logging
-    // console.log(`Active connections: ${wss.clients.size}`);
-    
-    // Poll player state every 500ms (was 100ms)
-    // Client-side interpolation handles smooth progress bar animation at 60fps
-    // Server just provides periodic sync points
-    const intervalId = setInterval(async () => {
+  wss = new WebSocket.Server({
+    server,
+    perMessageDeflate: false, // Avoid compression latency variance on small frequent messages
+  });
+
+  // Single global non-overlapping loop: poll DecapPlayer once, broadcast to all clients
+  (async () => {
+    while (true) {
+      const start = Date.now();
       try {
         const state = await TCPRemotePlayerState();
-        ws.send(JSON.stringify(state));
-      } catch (error) {
-        console.error('Error sending player state:', error);
+        const payload = JSON.stringify({
+          serverTime: Date.now(),
+          state,
+        });
+        for (const client of wss.clients) {
+          if (client.readyState === WebSocket.OPEN && client.bufferedAmount < WS_BACKPRESSURE_LIMIT_BYTES) {
+            client.send(payload);
+          }
+        }
+      } catch (err) {
+        console.error('Error polling/broadcasting player state:', err);
       }
-    }, 500);
+      const elapsed = Date.now() - start;
+      const delay = Math.max(0, WS_POLL_INTERVAL_MS - elapsed);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  })();
+
+  wss.on('connection', (ws: WebSocket) => {
+    const pingInterval = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    }, WS_PING_INTERVAL_MS);
 
     ws.on('close', () => {
-      clearInterval(intervalId);
-      // console.log('Client disconnected');
+      clearInterval(pingInterval);
     });
   });
 }
