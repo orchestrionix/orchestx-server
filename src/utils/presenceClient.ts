@@ -97,7 +97,8 @@ export class PresenceClient {
    */
   async start(): Promise<void> {
     const settings = await getSettings();
-    const enablePresence = settings.ENABLE_PRESENCE?.trim().toLowerCase() === 'true';
+    // const enablePresence = settings.ENABLE_PRESENCE?.trim().toLowerCase() === 'true';
+    const enablePresence = false;
     if (!enablePresence) {
       this.shouldConnect = false;
       return;
